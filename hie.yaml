@@ -1,0 +1,7 @@
+cradle:
+  stack:
+    - path: "./src"
+      component: "repoBase:lib"
+
+    - path: "./test"
+      component: "repoBase:test:repoBase-test"
