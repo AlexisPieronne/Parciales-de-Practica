@@ -161,6 +161,7 @@ durabilidadEstrat estrategia atacante atacadas = (durabilidadDeFlota . misionSor
 --sumatoria :: [Number] -> Number
 --sumatoria numeros = (sum . filter even) numeros
 
+--La respuesta, debido a lo que hablé con Pedro, el primero está mal, porque la composición, recibe 1 solo parámetro, en el primer ejemplo, sin los paréntesis, le estoy pasando 2 parámetros, even y numero; en cambio, en el segundo ejemplo, yo agrupo, uno de los parámetros con los paréntesis, y luego le paso 1 solo parámetro, a la composición. 
 ----------------------------------------------------------
 
 -- Esto es una solución declarativa y expresiva. 
