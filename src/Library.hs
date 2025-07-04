@@ -12,7 +12,7 @@ doble numero = numero + numero
 type Estrategia = (Nave -> Bool)
 type Poder = (Nave -> Nave)
 data Nave = UnaNave {
-    nombre :: String,
+    nombreNave :: String,
     durabilidad :: Number,
     escudo :: Number,
     ataque :: Number,
@@ -22,7 +22,7 @@ data Nave = UnaNave {
 -- Modelamos con Record Syntax --
 tieFighter :: Nave
 tieFighter = UnaNave {
-    nombre = "TIE Fighter",
+    nombreNave = "TIE Fighter",
     durabilidad = 200,
     escudo = 100,
     ataque = 50,
@@ -39,7 +39,7 @@ sumarAtaque numero nave = nave {ataque = ((+numero).ataque)  nave}
 
 xWing :: Nave
 xWing = UnaNave {
-    nombre = "X Wing",
+    nombreNave = "X Wing",
     durabilidad = 300,
     escudo = 150,
     ataque = 100,
@@ -145,37 +145,208 @@ durabilidadEstrat estrategia atacante atacadas = (durabilidadDeFlota . misionSor
 -- No es posible determinar su durabilidad total, ya que al ser una suma constante, nunca convergería a un valor específico. Por ende, el lenguaje estaría sumando infinitamente.
 -- Para esta pregunta hay 2 posibles resultados, el primero, si una cantidad finita de naves son las que cumplen la estrategia, la misión se hará sin problemas y nos dará como quedan las naves luego de ella. Ahora, si la totalidad de la flota, son naves que no cumplen la estrategia, el lenguaje estrá evaluando infinitamente hasta acabar la lista (o sea, nunca).
 
-
-
 ---------------------------------------------------------------------------
 
--- CONSULTAS A LOS PROFES: --
+-- Parcial HARRY POSTRE Y EL PASTEL CURRIFICADO --
 
--- 1) Porqué esto está mal? (me da error)
+-- Ejercicio 1A --
+--Modelar los postres. Un mismo postre puede tener muchos sabores, tiene un peso y se sirve a cierta temperatura. Por ejemplo, un bizcocho borracho de fruta y crema de 100 gramos servido a 25°C.
 
---sumatoria :: [Number] -> Number
---sumatoria numeros = sum . filter even numeros
+data Postre = UnPostre {
+    nombrePostre :: String,
+    sabores :: [String],
+    pesoPostre :: Number,
+    temperatura :: Number
+} deriving(Show,Eq)
 
--- Pero con esto está bien? Quiźas por agrupar la composición?
+bizcocho :: Postre
+bizcocho = UnPostre {
+    nombrePostre = "Bizcocho borracho",
+    sabores = ["Frutas","Crema"],
+    pesoPostre = 100,
+    temperatura = 25
+}
 
---sumatoria :: [Number] -> Number
---sumatoria numeros = (sum . filter even) numeros
+torta :: Postre
+torta = UnPostre {
+    nombrePostre = "Torta Helada",
+    sabores = ["Chocolate","Whisky"],
+    pesoPostre = 75,
+    temperatura = 15
+}
 
---La respuesta, debido a lo que hablé con Pedro, el primero está mal, porque la composición, recibe 1 solo parámetro, en el primer ejemplo, sin los paréntesis, le estoy pasando 2 parámetros, even y numero; en cambio, en el segundo ejemplo, yo agrupo, uno de los parámetros con los paréntesis, y luego le paso 1 solo parámetro, a la composición. 
-----------------------------------------------------------
+flan :: Postre
+flan = UnPostre {
+    nombrePostre = "Flan Muggle",
+    sabores = ["Dulce De Leche","Crema"],
+    pesoPostre = 50,
+    temperatura = 17
+}
 
--- Esto es una solución declarativa y expresiva. 
--- Declarativa: Menos detalle algortimico ;
--- Expresiva: Es un código legible y entendible para mí ;
+tarta :: Postre
+tarta = UnPostre {
+    nombrePostre = "Tarta",
+    sabores = ["Melaza"],
+    pesoPostre = 50,
+    temperatura = 0
+}
+-- Ejercicio 1B --
+--Modelar los hechizos, sabiendo que deberían poderse agregar más sin modificar el código existente. Por ahora existen los siguientes:
+--  Incendio: calienta el postre 1 grado y lo hace perder 5% de su peso.
+--  Immobulus: congela el postre, llevando su temperatura a 0.
+--  Wingardium Leviosa: levanta el postre en el aire y lo deja caer, lo que agrega a sus sabores el sabor “concentrado”. Además, pierde 10% de su peso.
+--  Diffindo: Corta el postre, disminuyendo su peso en el porcentaje indicado. 
+--  Riddikulus: Requiere como información adicional un sabor y lo agrega a los sabores que tiene un postre, pero invertido.
+--  Avada kedavrlistosa: Hace lo mismo que el immobulus pero además hace que el postre pierda todos sus sabores.
 
---sumatoriaPares :: [Number] -> Number
---sumatoriaPares = sum . numerosPares 
+type Hechizos = Postre -> Postre
 
---numerosPares :: [Number] -> [Number]
---numerosPares = filter even
+incendio :: Hechizos
+incendio = modifPeso 5 . aumentarTemperatura 1
 
---sumatoriaImpares :: [Number] -> Number
---sumatoriaImpares = sum . numerosImpares
+immobulus :: Hechizos
+immobulus postre = postre {temperatura = 0}
 
---numerosImpares :: [Number] -> [Number]
---numerosImpares = filter (not . even)
+wingardiumLeviosa :: Hechizos
+wingardiumLeviosa = agregarSabor "Concentrado" . modifPeso 10
+
+diffindo :: Number -> Hechizos
+diffindo valor = modifPeso valor
+
+riddikulus :: String -> Hechizos
+riddikulus saborExtra = (agregarSabor . invertirSabor) saborExtra
+
+avadaKedavra :: Hechizos
+avadaKedavra = immobulus . sacarSabores
+
+sacarSabores :: Postre -> Postre
+sacarSabores postre = postre {sabores = []}
+
+modifPeso :: Number -> Postre -> Postre
+modifPeso valor postre = postre {pesoPostre = (subtract (porcentajeDePeso valor postre) . pesoPostre) postre}  --Se puede aplicar composición con el subtract??
+
+porcentajeDePeso :: Number -> Postre -> Number
+porcentajeDePeso valor postre = (valor * pesoPostre postre)/100
+
+aumentarTemperatura :: Number -> Postre -> Postre
+aumentarTemperatura valor postre = postre {temperatura = ((+valor) . temperatura) postre}
+
+agregarSabor :: String -> Postre -> Postre
+agregarSabor saborExtra postre = postre {sabores = ((++[saborExtra]) . sabores) postre}
+
+invertirSabor :: String -> String
+invertirSabor = reverse
+
+-- Ejercicio 1C --
+--Dado un conjunto de postres en la mesa, saber si hacerles un determinado hechizo los dejará listos (un postre está listo cuando pesa algo más que cero, tiene algún sabor y además no está congelado).
+--Por ejemplo, si en la mesa está el bizcocho mencionado anteriormente y una tarta de melaza de 0 grados y 50 gramos, y les hago el hechizo incendio, quedan listos, pero si les hago el hechizo riddikulus con el sabor “nomil” no, porque la tarta sigue congelada.  
+
+estanPostresListo :: Hechizos -> [Postre] -> Bool
+estanPostresListo hechizo postres = (validacionPostres . aplicarHechizo hechizo) postres
+
+aplicarHechizo :: Hechizos -> [Postre] -> [Postre]
+aplicarHechizo hechizo postres = map hechizo postres
+
+validacionPostres :: [Postre] -> Bool
+validacionPostres = all aplicarConsultas
+
+aplicarConsultas :: Postre -> Bool
+aplicarConsultas postre = (pesaAlgoMasQueCero postre) && (tieneSabor postre) && (noEstaCongelado postre)
+
+pesaAlgoMasQueCero :: Postre -> Bool
+pesaAlgoMasQueCero = (>0) . pesoPostre
+
+tieneSabor :: Postre -> Bool
+tieneSabor = (/=[]) . sabores
+
+noEstaCongelado :: Postre -> Bool
+noEstaCongelado = (>0) . temperatura
+
+-- Ejercicio 1D --
+--Dado un conjunto de postres en la mesa, conocer el peso promedio de los postres listos. 
+
+pesoPromedioDePostresListos :: Hechizos -> [Postre] -> Number
+pesoPromedioDePostresListos hechizo = (sumarPesosPostresFiltrados . filtrarPostres hechizo)
+
+filtrarPostres :: Hechizos -> [Postre] -> [Postre]
+filtrarPostres hechizo postres = filter (postresListos hechizo) postres
+
+postresListos :: Hechizos -> Postre -> Bool
+postresListos hechizo postre = estanPostresListo hechizo [postre]
+
+sumarPesosPostresFiltrados :: [Postre] -> Number
+sumarPesosPostresFiltrados = sum . pesosDePostres
+
+pesosDePostres :: [Postre] -> [Number]
+pesosDePostres = map pesoPostre
+
+-- Ejercicio 2A--
+--De un mago se conocen sus hechizos aprendidos y la cantidad de horrorcruxes que tiene. Hacer que un mago asista a la clase de defensa contra las cocinas oscuras y practique con un hechizo sobre un postre (se espera obtener el mago). Cuando un mago practica con un hechizo, lo agrega a sus hechizos aprendidos. Además si el resultado de usar el hechizo en el postre es el mismo que aplicarle “avada kedavra” al postre, entonces suma un horrorcrux.
+
+data Mago = UnMago {
+    hechizosAprendidos :: [Hechizos],
+    cantidadHorrocruxes :: Number
+} deriving (Show,Eq)
+
+colorado :: Mago
+colorado = UnMago {
+    hechizosAprendidos = [(riddikulus "anana"), wingardiumLeviosa],
+    cantidadHorrocruxes = 0
+}
+
+harryngui :: Mago
+harryngui = UnMago{
+    hechizosAprendidos = [incendio, (diffindo 25)],
+    cantidadHorrocruxes = 1
+}
+
+hermione :: Mago
+hermione = UnMago {
+    hechizosAprendidos = [wingardiumLeviosa, immobulus, (diffindo 35)],
+    cantidadHorrocruxes = 0
+}
+
+claseDeDefensaContraCocinasOsucras :: Hechizos -> Mago -> Postre -> Mago
+claseDeDefensaContraCocinasOsucras hechizo mago postre = (validarHorrocruxes (agregarHechizoAMago hechizo mago) . aplicarHechizo hechizo) [postre]
+
+agregarHechizoAMago :: Hechizos -> Mago -> Mago
+agregarHechizoAMago hechizo mago = mago {hechizosAprendidos = (([hechizo]++) . hechizosAprendidos) mago}
+
+validarHorrocruxes :: Mago -> [Postre] -> Mago
+validarHorrocruxes mago (postre:resto) | condicionFinalPostre postre = mago {cantidadHorrocruxes = ((1+) . cantidadHorrocruxes) mago}
+                                       | otherwise = mago
+
+condicionFinalPostre :: Postre -> Bool
+condicionFinalPostre postre = not ((noEstaCongelado postre) && (tieneSabor postre)) --No pude componer esto
+
+-- Ejercicio 2B --
+--Dado un postre y un mago obtener su mejor hechizo, que es aquel de sus hechizos que deja al postre con más cantidad de sabores luego de usarlo.
+
+mejorHechizoDeMago :: Postre -> Mago -> Number 
+mejorHechizoDeMago postre mago = foldl1 max (longitudesDeSabores postre mago)
+--Logré que me devuelve la cantidad, no el hechizo. No tengo idea de como hacer que me devuelva el hechizo, ya que si hace eso no me da el nombre sino "<una funcion>"
+
+longitudesDeSabores :: Postre -> Mago -> [Number]
+longitudesDeSabores postre mago = (aplicarHechizoAUnMismoPostre postre . obtenerListaDeHechizos) mago
+
+obtenerListaDeHechizos :: Mago -> [Hechizos]
+obtenerListaDeHechizos mago = hechizosAprendidos mago 
+
+aplicarHechizoAUnMismoPostre :: Postre -> [Hechizos] -> [Number]
+aplicarHechizoAUnMismoPostre postre (hechizo:resto) = (length . (sabores . aplicarHechizoAUnPostre hechizo) $ postre) : aplicarHechizoAUnMismoPostre postre resto
+
+aplicarHechizoAUnMismoPostre _ [] = []
+
+
+aplicarHechizoAUnPostre :: Hechizos -> Postre -> Postre
+aplicarHechizoAUnPostre hechizo postre = hechizo postre
+
+-- Ejercicio 3B --
+--Suponiendo que hay una mesa con infinitos postres, y pregunto si algún hechizo los deja listos ¿Existe alguna consulta que pueda hacer para que me sepa dar una respuesta? Justificar conceptualmente.
+
+--No existe tal consulta, ya que al querer aplicar un hechizo al conjunto infinito de postres, el compilador nunca terminaría de aplicar los hechizos (tendríamos un loop infinito).
+
+-- Ejercicio 3C --
+--Suponiendo que un mago tiene infinitos hechizos ¿Existe algún caso en el que se puede encontrar al mejor hechizo? Justificar conceptualmente.
+
+--SI, existe un caso, y sería aquel hechizo que más sobres agregue, sin embargo, nuevamente, el lenguaje estaría iterando infinitamente hasta encontrar aquél que tenga más sabores a agregar. 
