@@ -81,7 +81,6 @@ durabilidadesDeNaves = map durabilidad
 
 ataqueEntreNaves :: Nave -> Nave -> Nave
 ataqueEntreNaves atacante atacada = (reducirDurabilidad . activacionPoderes atacante) atacada
---Esto funciona si "anido" las funciones, con composición da error. Por qué ocurre eso?
 
 reducirDurabilidad :: [Nave] -> Nave
 reducirDurabilidad (atacada:atacante:_) = atacada {durabilidad = max 0 (durabilidad atacada - ataque atacante)}
@@ -322,7 +321,7 @@ condicionFinalPostre postre = not ((noEstaCongelado postre) && (tieneSabor postr
 -- Ejercicio 2B --
 --Dado un postre y un mago obtener su mejor hechizo, que es aquel de sus hechizos que deja al postre con más cantidad de sabores luego de usarlo.
 
-mejorHechizoDeMago :: Postre -> Mago -> Number 
+mejorHechizoDeMago :: Postre -> Mago -> Number
 mejorHechizoDeMago postre mago = foldl1 max (longitudesDeSabores postre mago)
 --Logré que me devuelve la cantidad, no el hechizo. No tengo idea de como hacer que me devuelva el hechizo, ya que si hace eso no me da el nombre sino "<una funcion>"
 
@@ -330,7 +329,7 @@ longitudesDeSabores :: Postre -> Mago -> [Number]
 longitudesDeSabores postre mago = (aplicarHechizoAUnMismoPostre postre . obtenerListaDeHechizos) mago
 
 obtenerListaDeHechizos :: Mago -> [Hechizos]
-obtenerListaDeHechizos mago = hechizosAprendidos mago 
+obtenerListaDeHechizos mago = hechizosAprendidos mago
 
 aplicarHechizoAUnMismoPostre :: Postre -> [Hechizos] -> [Number]
 aplicarHechizoAUnMismoPostre postre (hechizo:resto) = (length . (sabores . aplicarHechizoAUnPostre hechizo) $ postre) : aplicarHechizoAUnMismoPostre postre resto
@@ -349,4 +348,169 @@ aplicarHechizoAUnPostre hechizo postre = hechizo postre
 -- Ejercicio 3C --
 --Suponiendo que un mago tiene infinitos hechizos ¿Existe algún caso en el que se puede encontrar al mejor hechizo? Justificar conceptualmente.
 
---SI, existe un caso, y sería aquel hechizo que más sobres agregue, sin embargo, nuevamente, el lenguaje estaría iterando infinitamente hasta encontrar aquél que tenga más sabores a agregar. 
+--Si, existe un caso, y sería aquel hechizo que más sobres agregue, sin embargo, nuevamente, el lenguaje estaría iterando infinitamente hasta encontrar aquél que tenga más sabores a agregar. 
+
+------------------------------------------------------------------------------------------
+
+-- Parcial UN PARCIAL MÁS --
+
+-- Ejercicio 1 --
+--Modelar los siguientes personajes principales: Mordecai tiene inteligencia 90, vagancia 60 y sus powerUps son videojuegos, taeKwonMortal con movimiento “Bloqueo” y picante. Posee los títulos “Extrahuevordinario” y “Golpe Mortal” ; Rigby tiene inteligencia 65, vagancia 101 y suspowerUps son cafeCafe de 200cm3, y taeKwonMortal con movimiento “Golpe”. No posee títulos.
+
+type PowerUps = (Personaje -> Personaje)
+
+data Personaje = UnPersonaje {
+    nombrePersonaje :: String,
+    nivelInteligencia :: Number,
+    nivelVagancia :: Number,
+    mejoras :: [PowerUps],
+    titulos :: [String]
+} deriving(Show,Eq)
+
+mordecai :: Personaje
+mordecai = UnPersonaje {
+    nombrePersonaje = "Mordo",
+    nivelInteligencia = 90,
+    nivelVagancia = 60,
+    mejoras = [videojuegos,taeKwonMortal "Bloqueo", picante],
+    titulos = ["Extrahuevordinario","Golpe Mortal"]
+}
+
+rigby :: Personaje
+rigby = UnPersonaje {
+    nombrePersonaje = "Rigby",
+    nivelInteligencia = 65,
+    nivelVagancia = 101,
+    mejoras = [cafeCafe 200, taeKwonMortal "Golpe", menteMax, fiestaLosMartes],
+    titulos = []
+}
+
+papaleta :: Personaje
+papaleta = UnPersonaje {nombrePersonaje = "Papaleta", nivelInteligencia = 0, nivelVagancia = 10, mejoras = [menteMax], titulos = ["Pops"]}
+
+-- Ejercicio 2--
+--Se pide crear los siguientes powerUps, para poder aplicárselos a un personaje: 1) fiestaLosMartes que reduce 10 puntos de vagancia y cambia el nombre del personaje al mismo nombre pero con bullicio al final. Ej: “Benson” cambia a “Benson Bullicio”. La vagancia nunca debe quedar por debajo de cero (ni con este ni con ningún otro powerup). 2) taeKwonMortal que dado el nombre de un movimiento, le agrega la palabra “mortal” y lo añade a los títulos del personaje. Tener en cuenta que un personaje no puede tener títulos repetidos (ni con este ni con ningún otro powerup). 3) menteMax agrega el título “Moriones”, y sube la inteligencia un 10%. 4) videoJuegos que agrega el título “Maestro de los videojuegos”, sube la inteligencia un 5% y aumenta 35 puntos de vagancia. 5) cafeCafe que reduce en 100 puntos la vagancia del personaje y aumenta la inteligencia 1% por cada 200cm3 de café ingeridos. 6) picante que no hace absolutamente nada, deja el personaje tal cual como esta.
+
+videojuegos :: PowerUps
+videojuegos = agregarTitulo "Maestro De Los Videojuegos" . modifInteligencia 5 . modifVagancia (+35)
+
+modifVagancia :: (Number -> Number) -> Personaje -> Personaje
+modifVagancia func personaje = personaje {nivelVagancia = max 0 ((func . nivelVagancia) personaje)}
+
+modifInteligencia :: Number -> Personaje -> Personaje
+modifInteligencia num personaje = personaje {nivelInteligencia = nivelInteligencia personaje + (nivelInteligencia personaje * num/100)}
+
+agregarTitulo :: String -> Personaje -> Personaje
+agregarTitulo titulo personaje | not(tieneElTitulo titulo personaje) = personaje {titulos = titulo : titulos personaje}
+                               | otherwise = personaje
+
+tieneElTitulo :: String -> Personaje -> Bool
+tieneElTitulo titulo personaje = elem titulo (titulos personaje)  
+
+taeKwonMortal :: String -> PowerUps
+taeKwonMortal str personaje = agregarTitulo (agregarMortal str) personaje  --No los pude componer debido a que agregarMortal no recibe un personaje
+
+agregarMortal :: String -> String
+agregarMortal str = str ++ " Mortal"
+
+picante :: PowerUps
+picante personaje = personaje 
+
+fiestaLosMartes :: PowerUps
+fiestaLosMartes personaje = (modifNombre (++" Bullicio") . modifVagancia (subtract 10)) personaje
+
+modifNombre :: (String -> String) -> Personaje -> Personaje
+modifNombre func personaje = personaje {nombrePersonaje = (func . nombrePersonaje) personaje}
+
+menteMax :: PowerUps
+menteMax personaje = (agregarTitulo "Moriones" . modifInteligencia 10) personaje
+
+cafeCafe :: Number -> PowerUps
+cafeCafe valor personaje = (modifInteligencia (valor/200). modifVagancia (subtract 100)) personaje
+
+-- Ejercicio 3--
+--Dado un personaje y una misión, nos interesa saber si ese personaje puede realizar esa misión teniendo en cuenta que para cualquier misión es requisito que el personaje tenga al menos 1 powerUp. Además, se pide modelar las siguientes misiones: 1) desafioExtrahuevordinario que se puede realizar únicamente si el personaje tiene el título “Extrahuevordinario”. 2) darCarinio que se puede realizar siempre salvo que el personaje sea “Rigby”. 3) beberMissisipiQueen que sólo la pueden realizar quienes se llamen Mordecai, Benson o Rigby y no sean vagos. Alguien es vago cuando tiene 70 puntos de vagancia o más. 4) comerSandwichDeLaMuerte que se puede realizar si el personaje tiene algún movimiento mortal (título que termina con la palabra “mortal”) (recordar el requisito común de tener al menos 1 powerUp).
+
+type Mision = Personaje -> Bool
+
+puedeHacerMision :: Mision -> Personaje -> Bool
+puedeHacerMision mision personaje = (tieneAlMenos1PowerUp personaje) && (cumpleRequisitoDeMision personaje mision)
+
+tieneAlMenos1PowerUp :: Personaje -> Bool
+tieneAlMenos1PowerUp personaje = not ((null . mejoras) personaje)
+
+cumpleRequisitoDeMision :: Personaje -> Mision -> Bool
+cumpleRequisitoDeMision personaje mision = mision personaje  --Esta función se me hace super redundante
+
+desafioExtrahuevordinario :: Mision
+desafioExtrahuevordinario personaje = elem "Extrahuevordinario" (titulos personaje)
+
+darCarinio :: Mision
+darCarinio personaje = nombrePersonaje personaje /= "Rigby"
+
+beberMissisipiQueen :: Mision
+beberMissisipiQueen personaje = (validarNombre personaje) && (not(esVago personaje))
+
+validarNombre :: Personaje -> Bool
+validarNombre personaje = (nombrePersonaje personaje == "Mordo") || (nombrePersonaje personaje == "Rigby") || (nombrePersonaje personaje == "Benson")
+
+esVago :: Personaje -> Bool
+esVago personaje = ((>70) . nivelVagancia) personaje
+
+comerSandwichDeLaMuerte :: Mision
+comerSandwichDeLaMuerte personaje = elem "Mortal" (titulos personaje) --No tengo idea de como hacer para que busque un título que termine en "Mortal", lo que puse ahí solo busca por el título "Mortal"
+
+-- Ejercici 4 -- 
+--Escribir los tests necesarios para probar que funcione bien la misión missisipiQueen.
+
+-- Ejercicio 5 --
+--Dada una lista de personajes y una misión deseamos saber si es un grupo regular para esa misión. Es un grupo regular cuando más de 3 integrantes pueden realizar la misión o si hay uno llamado ”Papaleta” entre ellos. Ni siquiera es necesario que Papaleta pueda realizarla, con estar ahí aporta suficiente.
+
+esGrupoRegular :: [Personaje] -> Mision -> Bool
+esGrupoRegular grupo mision = masDe3PuedenHacerla grupo mision || hayUnPapaleta grupo
+
+hayUnPapaleta :: [Personaje] -> Bool
+hayUnPapaleta grupo = ((elem "Papaleta") . filtrarNombres) grupo 
+
+filtrarNombres :: [Personaje] -> [String]
+filtrarNombres grupo = map nombrePersonaje grupo 
+
+masDe3PuedenHacerla :: [Personaje] -> Mision -> Bool
+masDe3PuedenHacerla grupo mision = ((>3) . length . (puedenHacerla grupo)) mision
+
+puedenHacerla :: [Personaje] -> Mision -> [Bool]
+puedenHacerla grupo mision = (filtrarLosQuePueden . evaluarLaMisionConTodos mision) grupo 
+
+evaluarLaMisionConTodos :: Mision -> [Personaje] -> [Bool]
+evaluarLaMisionConTodos mision grupo = map mision grupo 
+
+filtrarLosQuePueden :: [Bool] -> [Bool]
+filtrarLosQuePueden grupo = filter id grupo --No conocía la función id, la encontré en un foro. Es posible usarla?
+
+-- Ejercicio 6 --
+--Se desea conocer la versión suprema de un personaje. Este es el personaje luego de haberse aplicado sus Power Ups sobre sí mismo
+
+versionSuprema :: Personaje -> Personaje
+versionSuprema personaje = (aplicarPowerUps personaje . obtenerPowerUps) personaje
+
+obtenerPowerUps :: Personaje -> [PowerUps]
+obtenerPowerUps personaje = mejoras personaje
+
+aplicarPowerUps :: Personaje -> [PowerUps] -> Personaje
+aplicarPowerUps personaje mejoras = foldl aplica1SoloPowerUp personaje mejoras
+
+aplica1SoloPowerUp :: Personaje -> PowerUps -> Personaje
+aplica1SoloPowerUp personaje mejora = mejora personaje 
+
+-- Ejercicio 7 --
+--Dada una lista de misiones y un personaje: a) Se desea conocer cuántas misiones seguidas puede cumplir ese personaje estando en su versión suprema. Tener en cuenta que deja de contar cuando se cruza con una que no pueda completar. b) ¿Qué pasaría si consulto el punto anterior con una lista infinita de misiones?I) Analizar conceptualmente II) codificar al menos una lista infinita de ejemplo.
+ 
+cuantasPuedeHacer :: [Mision] -> Personaje -> Number
+cuantasPuedeHacer [] _ = 0
+cuantasPuedeHacer (x:xs) personaje | (puedeHacerMision x . versionSuprema) personaje = 1 + cuantasPuedeHacer xs personaje
+                                   | otherwise = 0
+
+-- b) Debido al enunciado del problema, Haskell iteraría hasta encontrar una mision que no pueda completarse por el personaje. Al encontrarla devolvería la cantidad de misiones que fueron completadas. En caso de que todas las misiones pudieran completasrse, el lenguaje estaría iterando infinitamente.
+
+listaInfinitaDeMisiones :: [PowerUps]
+listaInfinitaDeMisiones = repeat picante 
