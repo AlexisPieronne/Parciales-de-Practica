@@ -401,11 +401,11 @@ modifInteligencia :: Number -> Personaje -> Personaje
 modifInteligencia num personaje = personaje {nivelInteligencia = nivelInteligencia personaje + (nivelInteligencia personaje * num/100)}
 
 agregarTitulo :: String -> Personaje -> Personaje
-agregarTitulo titulo personaje | not(tieneElTitulo titulo personaje) = personaje {titulos = titulo : titulos personaje}
+agregarTitulo titulo personaje | not (tieneElTitulo titulo personaje) = personaje {titulos = titulo : titulos personaje}
                                | otherwise = personaje
 
 tieneElTitulo :: String -> Personaje -> Bool
-tieneElTitulo titulo personaje = elem titulo (titulos personaje)  
+tieneElTitulo titulo personaje = elem titulo (titulos personaje)
 
 taeKwonMortal :: String -> PowerUps
 taeKwonMortal str personaje = agregarTitulo (agregarMortal str) personaje  --No los pude componer debido a que agregarMortal no recibe un personaje
@@ -414,7 +414,7 @@ agregarMortal :: String -> String
 agregarMortal str = str ++ " Mortal"
 
 picante :: PowerUps
-picante personaje = personaje 
+picante personaje = personaje
 
 fiestaLosMartes :: PowerUps
 fiestaLosMartes personaje = (modifNombre (++" Bullicio") . modifVagancia (subtract 10)) personaje
@@ -449,7 +449,7 @@ darCarinio :: Mision
 darCarinio personaje = nombrePersonaje personaje /= "Rigby"
 
 beberMissisipiQueen :: Mision
-beberMissisipiQueen personaje = (validarNombre personaje) && (not(esVago personaje))
+beberMissisipiQueen personaje = (validarNombre personaje) && (not (esVago personaje))
 
 validarNombre :: Personaje -> Bool
 validarNombre personaje = (nombrePersonaje personaje == "Mordo") || (nombrePersonaje personaje == "Rigby") || (nombrePersonaje personaje == "Benson")
@@ -470,19 +470,19 @@ esGrupoRegular :: [Personaje] -> Mision -> Bool
 esGrupoRegular grupo mision = masDe3PuedenHacerla grupo mision || hayUnPapaleta grupo
 
 hayUnPapaleta :: [Personaje] -> Bool
-hayUnPapaleta grupo = ((elem "Papaleta") . filtrarNombres) grupo 
+hayUnPapaleta grupo = ((elem "Papaleta") . filtrarNombres) grupo
 
 filtrarNombres :: [Personaje] -> [String]
-filtrarNombres grupo = map nombrePersonaje grupo 
+filtrarNombres grupo = map nombrePersonaje grupo
 
 masDe3PuedenHacerla :: [Personaje] -> Mision -> Bool
 masDe3PuedenHacerla grupo mision = ((>3) . length . (puedenHacerla grupo)) mision
 
 puedenHacerla :: [Personaje] -> Mision -> [Bool]
-puedenHacerla grupo mision = (filtrarLosQuePueden . evaluarLaMisionConTodos mision) grupo 
+puedenHacerla grupo mision = (filtrarLosQuePueden . evaluarLaMisionConTodos mision) grupo
 
 evaluarLaMisionConTodos :: Mision -> [Personaje] -> [Bool]
-evaluarLaMisionConTodos mision grupo = map mision grupo 
+evaluarLaMisionConTodos mision grupo = map mision grupo
 
 filtrarLosQuePueden :: [Bool] -> [Bool]
 filtrarLosQuePueden grupo = filter id grupo --No conocía la función id, la encontré en un foro. Es posible usarla?
@@ -500,11 +500,11 @@ aplicarPowerUps :: Personaje -> [PowerUps] -> Personaje
 aplicarPowerUps personaje mejoras = foldl aplica1SoloPowerUp personaje mejoras
 
 aplica1SoloPowerUp :: Personaje -> PowerUps -> Personaje
-aplica1SoloPowerUp personaje mejora = mejora personaje 
+aplica1SoloPowerUp personaje mejora = mejora personaje
 
 -- Ejercicio 7 --
 --Dada una lista de misiones y un personaje: a) Se desea conocer cuántas misiones seguidas puede cumplir ese personaje estando en su versión suprema. Tener en cuenta que deja de contar cuando se cruza con una que no pueda completar. b) ¿Qué pasaría si consulto el punto anterior con una lista infinita de misiones?I) Analizar conceptualmente II) codificar al menos una lista infinita de ejemplo.
- 
+
 cuantasPuedeHacer :: [Mision] -> Personaje -> Number
 cuantasPuedeHacer [] _ = 0
 cuantasPuedeHacer (x:xs) personaje | (puedeHacerMision x . versionSuprema) personaje = 1 + cuantasPuedeHacer xs personaje
@@ -513,4 +513,182 @@ cuantasPuedeHacer (x:xs) personaje | (puedeHacerMision x . versionSuprema) perso
 -- b) Debido al enunciado del problema, Haskell iteraría hasta encontrar una mision que no pueda completarse por el personaje. Al encontrarla devolvería la cantidad de misiones que fueron completadas. En caso de que todas las misiones pudieran completasrse, el lenguaje estaría iterando infinitamente.
 
 listaInfinitaDeMisiones :: [PowerUps]
-listaInfinitaDeMisiones = repeat picante 
+listaInfinitaDeMisiones = repeat picante
+
+------------------------------------------------------------------------------------------
+
+-- Parcial HASKELLPARK --
+
+-- Ejercicio 1a --
+--Modelamos una aplicación de parques de diversiones donde registramos sus atracciones, de las cuales conocemos su nombre, altura mínima requerida para la persona que ingrese medida en centímetros, duración en minutos, una serie de opiniones que le da la gente (“entretenida”, “veloz”, ”un embole”, etc) y si está en mantenimiento o no lo cual permite el acceso por parte de las personas. Un operador determina si el entretenimiento requiere atención y lo pasa a su estado de mantenimiento. En algún momento pasan los técnicos y asignan las reparaciones, que tiene una duración determinada en días y el trabajo que se realiza.
+
+data Atracciones = UnaAtraccion {
+    nombreAtraccion :: String,
+    alturaMinimaEnCM :: Number,
+    duracionEnMinutos :: Number,
+    opiniones :: [String],
+    reparaciones :: Mantenimiento
+} deriving(Show,Eq)
+
+data Mantenimiento = UnMantenimiento {
+    estaEnMantenimiento :: Bool,
+    ordenesDeReparacion :: Number,
+    reparacionesARealizar :: [Reparacion],
+    duracionDeReparaciones :: [Number]
+} deriving(Show,Eq)
+
+puente :: Atracciones
+puente = UnaAtraccion {
+    nombreAtraccion = "Puentesuli",
+    alturaMinimaEnCM = 160,
+    duracionEnMinutos = 7,
+    opiniones = ["Estresante","Divertida","Un Embole"],
+    reparaciones =  (UnMantenimiento True 2 [engrase 5, ajusteDeTornillería 1] [2,5])
+}
+
+saltoMortal:: Atracciones
+saltoMortal = UnaAtraccion {
+    nombreAtraccion = "El Salto Mortal",
+    alturaMinimaEnCM = 170,
+    duracionEnMinutos = 5,
+    opiniones = ["Alocada","Emocionante","Extrema"],
+    reparaciones =  (UnMantenimiento False 0 [] [])
+}
+
+type Reparacion = Atracciones -> Atracciones
+
+-- Ejercicio 1b --
+--Queremos saber qué tan buena es una atracción. Para eso utilizamos un sistema de scoring que tiene un modo muy particular para calcularlo: Si la atracción tiene una duración prolongada (es decir que dura más de 10 minutos) valen 100 puntos. Si no es así, pero tiene menos de 3 órdenes de reparaciones el puntaje es 10 puntos por cada letra del nombre más 2 puntos por cada opinión que tiene. Caso contrario es 10 veces la altura mínima requerida.
+
+queTanBuenaEs :: Atracciones -> Number
+queTanBuenaEs atraccion | duracionMayorA atraccion = 100
+                        | ordenesReparacionMenorA atraccion = puntosDeAtraccion atraccion
+                        | otherwise = puntosPorAltura atraccion
+
+duracionMayorA :: Atracciones -> Bool
+duracionMayorA atraccion = ((>10) . duracionEnMinutos) atraccion
+
+ordenesReparacionMenorA :: Atracciones -> Bool
+ordenesReparacionMenorA atraccion = verMantenimientos (reparaciones atraccion)
+
+verMantenimientos :: Mantenimiento -> Bool
+verMantenimientos reparacion = ((<3) . ordenesDeReparacion) reparacion
+
+puntosPorAltura :: Atracciones -> Number
+puntosPorAltura atraccion = ((10*). alturaMinimaEnCM) atraccion
+
+puntosDeAtraccion :: Atracciones -> Number
+puntosDeAtraccion atraccion = ((+puntosPorNombre atraccion) . puntosPorOpinion) atraccion
+
+puntosPorNombre :: Atracciones -> Number
+puntosPorNombre atraccion = ((10*) . length . nombreAtraccion) atraccion
+
+puntosPorOpinion :: Atracciones -> Number
+puntosPorOpinion atraccion = ((2*) . length . opiniones) atraccion
+
+--Siento que estas últimas 2 funciones las podía unir en una sola parando una función. Siento que de esta manera repiten lógica 
+
+-- Ejercicio 2 --
+--Los técnicos tienen diversos tipos de trabajo que pueden desarrollar en cada reparación sobre las atracciones. Algo muy importante a tener en cuenta es que luego de que realizan cualquier trabajo siempre ocurren dos cosas: se elimina la última reparación de la lista (no importa cual fuere) y se verifica que no tenga reparaciones pendientes. Si quedan pendientes debe mantener el indicador que está en mantenimiento, caso contrario no. Los posibles trabajos son : 1) ajusteDeTornillería que como le refuerza aún más estructura a la atracción, prolonga su duración en 1 minuto por cada tornillo apretado pero no pudiendo superar los 10 minutos porque no es rentable. Es decir que si una atracción dura 3 minutos y ajusta 4 tornillos la misma pasa a durar 7 minutos. Pero sí una atracción dura 8 minutos y el técnico logra apretar 5 tornillos pasa a durar solamente 10 minutos. 2) engrase que vuelve más veloz al entretenimiento, por lo tanto aumenta en 0,1 centímetros la altura mínima requerida por cada gramo de grasa utilizada en el proceso y le agrega la opinión “para valientes”. La cantidad de grasa requerida puede variar según el criterio del técnico. 3) mantenimientoElectrico repara todas las bombitas de luz y su cableado. Como es un lavado de cara y una novedad para la gente, solo se queda con las dos primeras opiniones y el resto las descarta. 4) mantenimientoBásico que consiste en ajustar la tornillería de 8 tornillos y hacer un engrase con 10 gramos de grasa. 
+
+ajusteDeTornillería :: Number -> Reparacion
+ajusteDeTornillería cantTornillos atraccion = atraccion {duracionEnMinutos = ((min 10).(duracionEnMinutos . modifDuracion cantTornillos)) atraccion, reparaciones = restaurarAtraccion atraccion}
+
+restaurarAtraccion :: Atracciones -> Mantenimiento
+restaurarAtraccion atraccion = UnMantenimiento False (restar1Trabajo atraccion) (eliminarUltimoTrabajo atraccion) (eliminarUltimaDuracion atraccion)
+
+restar1Trabajo :: Atracciones -> Number
+restar1Trabajo atraccion = subtract 1 (ordenesDeReparacion (reparaciones atraccion))
+
+eliminarUltimoTrabajo :: Atracciones -> [Reparacion]
+eliminarUltimoTrabajo atraccion = init (reparacionesARealizar (reparaciones atraccion))
+
+eliminarUltimaDuracion :: Atracciones -> [Number]
+eliminarUltimaDuracion atraccion = init (duracionDeReparaciones (reparaciones atraccion))
+
+modifDuracion :: Number -> Atracciones -> Atracciones
+modifDuracion cantTornillos atraccion = atraccion {duracionEnMinutos = ((+cantTornillos). duracionEnMinutos) atraccion}
+
+engrase :: Number -> Reparacion
+engrase gramosGrasa atraccion = atraccion {alturaMinimaEnCM = modifAltura gramosGrasa atraccion, opiniones = agregarOpinion "Para Valientes" atraccion, reparaciones = restaurarAtraccion atraccion}
+
+modifAltura :: Number -> Atracciones -> Number
+modifAltura cant atraccion = ((+(0.1*cant)) . alturaMinimaEnCM) atraccion
+
+agregarOpinion :: String -> Atracciones -> [String]
+agregarOpinion opinion atraccion = ((opinion:) . opiniones) atraccion
+
+mantenimientoElectrico :: Reparacion
+mantenimientoElectrico atraccion = atraccion {opiniones = lasDosPrimeras atraccion, reparaciones = restaurarAtraccion atraccion}
+
+lasDosPrimeras :: Atracciones -> [String]
+lasDosPrimeras atraccion = (take 2 . opiniones) atraccion
+
+mantenimientoBasico :: Reparacion
+mantenimientoBasico atraccion = (ajusteDeTornillería 8 . engrase 10) atraccion
+
+-- Ejercicio 3a --
+--Esa me da miedito: Queremos saber si una atracción meDaMiedito, esto implica que alguna de las inspecciones que se le hicieron le asignó más de 4 días de mantenimiento.
+
+meDaMiedito :: Atracciones -> Bool
+meDaMiedito atraccion = tieneDuracionMayorA4 (reparaciones atraccion)
+
+tieneDuracionMayorA4 :: Mantenimiento -> Bool
+tieneDuracionMayorA4 reparacion = (any (>4) . duracionDeReparaciones) reparacion
+
+-- Ejercicio 3b --
+--Acá cerramos: Cerramos una atracción si la sumatoria de tiempo de las reparaciones pendientes para dicha atracción es de 7 días. 
+
+acaCerramos :: Atracciones -> Bool
+acaCerramos atraccion = sumanMasDe7Dias (reparaciones atraccion)
+
+sumanMasDe7Dias :: Mantenimiento -> Bool
+sumanMasDe7Dias reparacion = ((>=7) . sum . duracionDeReparaciones) reparacion
+
+-- Ejercicio 3c --
+--Disney no esistis: Tenemos que determinar disneyNoEsistis para un parque. Esto ocurre cuando todas las atracciones de nombre cheto (con más de 5 letras) no tienen reparaciones pendientes.
+
+disneyNoEsistis :: [Atracciones] -> Bool
+disneyNoEsistis atracciones = (all ((==0) . ordenesDeReparacion . reparaciones) . filter ((>5) . length . nombreAtraccion)) atracciones
+
+--nombreCheto :: [Atracciones] -> [Atracciones]
+--nombreCheto atracciones = filter ((>5) . length . nombreAtraccion) atracciones
+
+--noTienenReparaciones :: [Atracciones] -> Bool
+--noTienenReparaciones atracciones = all ((==0) . ordenesDeReparacion . reparaciones) atracciones
+
+-- Ejercicio 4 --
+--Una atracción tiene reparaciones peolas si luego de cada una está más buena, esto implica que luego de hacer el trabajo de cada reparación el puntaje mejora con respecto a la reparación previa. 
+
+tieneReparacionesPeolas :: Atracciones -> Bool
+tieneReparacionesPeolas atraccion = ((aplicarReparacionesYverificar atraccion) . obtenerReparaciones) atraccion
+
+obtenerReparaciones :: Atracciones -> [Reparacion]
+obtenerReparaciones atraccion = (reparacionesARealizar . reparaciones) atraccion
+
+aplicarReparacionesYverificar :: Atracciones -> [Reparacion] -> Bool
+aplicarReparacionesYverificar atraccion (reparacion:resto) | (queTanBuenaEs (atraccionReparada atraccion reparacion)) > (queTanBuenaEs atraccion) = True && aplicarReparacionesYverificar atraccion resto
+                                                           | otherwise = False
+aplicarReparacionesYverificar atraccion [] = True
+
+atraccionReparada :: Atracciones -> Reparacion -> Atracciones
+atraccionReparada atraccion reparacion = reparacion atraccion
+
+-- Ejercicio 5 --
+--Queremos modelar un proceso que realice los trabajos de las reparaciones pendientes sobre una atracción. Se pide que además muestre un ejemplo de cómo podría evaluar por consola el proceso para cada una de las actividades resueltas en el punto anterior.
+
+repararAlCompleto :: Atracciones -> Atracciones
+repararAlCompleto atraccion = (aplicarReparaciones atraccion . obtenerReparaciones) atraccion 
+
+aplicarReparaciones :: Atracciones -> [Reparacion] -> Atracciones
+aplicarReparaciones atraccion reparaciones = foldl aplicar1SolaReparacion atraccion reparaciones 
+
+aplicar1SolaReparacion :: Atracciones -> Reparacion -> Atracciones
+aplicar1SolaReparacion atraccion reparacion = reparacion atraccion 
+
+-- No entendí lo que pide que hagamos por consola
+
+-- Ejercicio 6 --
+--Si una atracción tiene una cantidad infinita de trabajos, ¿sería posible obtener un valor computable para la función del punto anterior? ¿Qué ocurriría con una lista de trabajos infinita en el punto 4? Justifique sus respuestas relacionándolo con un concepto visto en la materia.
+
+--Para el punto anterior sería imposible que el lenguaje nos entregue un valor computable, ya que estaría evaluando y aplicando reparaciones infinitamente. Esto debido a que la "condicion de corte" es la cantidad de reparaciones a realizar. En el punto 4, en cambio, el lenguaje va a iterar hasta encontrar una que no cumpla la condición establecida (Que al mejorarle este mas buena que su versión anterior). 
